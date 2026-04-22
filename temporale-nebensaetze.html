@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temporale Nebensätze – Sätze verbinden</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green-dark:  #1A3A2A;
+    --green-mid:   #2C5F2D;
+    --green-light: #4A8C4A;
+    --gold:        #C9A84C;
+    --gold-light:  #F5EDD4;
+    --cream:       #F7F3E8;
+    --white:       #FFFFFF;
+    --text:        #1A2A1A;
+    --text-mid:    #3A5A3A;
+    --text-muted:  #6B7B6B;
+    --bevor-bg:    #FAECE7; --bevor-text: #993C1D; --bevor-border: #E8A88A;
+    --nachdem-bg:  #E6F1FB; --nachdem-text: #185FA5; --nachdem-border: #85B7EB;
+    --waehrend-bg: #EEEDFE; --waehrend-text: #3C3489; --waehrend-border: #AFA9EC;
+    --seitdem-bg:  #EAF3DE; --seitdem-text: #3B6D11; --seitdem-border: #97C459;
+    --error-bg:    #FCEBEB; --error-text: #791F1F; --error-border: #F09595;
+    --warn-bg:     #FAEEDA; --warn-text:  #633806; --warn-border: #EF9F27;
+  }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-family: 'Lora', serif;
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--green-dark);
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+  }
+
+  .conj-pills {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .pill {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+  }
+  .pill-bevor   { background: var(--bevor-bg);   color: var(--bevor-text);   border: 1px solid var(--bevor-border); }
+  .pill-nachdem { background: var(--nachdem-bg); color: var(--nachdem-text); border: 1px solid var(--nachdem-border); }
+  .pill-waehrend{ background: var(--waehrend-bg);color: var(--waehrend-text);border: 1px solid var(--waehrend-border); }
+  .pill-seitdem { background: var(--seitdem-bg); color: var(--seitdem-text); border: 1px solid var(--seitdem-border); }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: #D8D2C0;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--green-mid);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .card {
+    background: var(--white);
+    border: 1px solid #D8D2C0;
+    border-radius: 14px;
+    padding: 1.75rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(26,58,42,0.06);
+  }
+
+  .attempt-pips {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 1rem;
+  }
+
+  .pip {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+  }
+  .pip-correct   { background: var(--green-mid); }
+  .pip-incorrect { background: #E24B4A; }
+  .pip-empty     { background: #D8D2C0; }
+
+  .sentences {
+    margin-bottom: 1rem;
+  }
+
+  .sentence {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .hint {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 1.25rem;
+    padding: 8px 12px;
+    background: var(--gold-light);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 6px 6px 0;
+  }
+
+  textarea {
+    width: 100%;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    padding: 10px 13px;
+    border: 1.5px solid #C8C2B0;
+    border-radius: 8px;
+    background: #FDFBF6;
+    color: var(--text);
+    resize: vertical;
+    min-height: 68px;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus { outline: none; border-color: var(--green-mid); }
+  textarea.t-correct   { border-color: var(--green-mid); background: var(--seitdem-bg); color: #27500A; }
+  textarea.t-incorrect { border-color: #E24B4A; background: var(--error-bg); color: var(--error-text); }
+  textarea[readonly]   { cursor: default; }
+
+  .feedback {
+    margin-top: 0.9rem;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .fb-correct {
+    background: var(--seitdem-bg);
+    border: 1px solid var(--seitdem-border);
+    color: #27500A;
+  }
+
+  .fb-incorrect {
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    color: var(--error-text);
+  }
+
+  .fb-summary {
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .fb-errors {
+    margin: 8px 0 0;
+    padding: 8px 12px;
+    background: rgba(163,45,45,0.07);
+    border-radius: 6px;
+  }
+
+  .fb-error-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #A32D2D;
+    margin-bottom: 5px;
+  }
+
+  .fb-error-item {
+    font-size: 0.875rem;
+    color: var(--error-text);
+    padding-left: 14px;
+    position: relative;
+    margin-bottom: 3px;
+  }
+  .fb-error-item::before { content: "→"; position: absolute; left: 0; }
+
+  .fb-tip {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: var(--warn-text);
+  }
+
+  .fb-tip strong { color: #412402; }
+
+  .fb-model {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(163,45,45,0.07);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: var(--error-text);
+  }
+
+  .fb-model strong { color: #501313; }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  button {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 7px;
+    border: 1.5px solid #C8C2B0;
+    background: var(--white);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+
+  button:hover   { background: var(--cream); border-color: #A8A299; }
+  button:active  { transform: scale(0.97); }
+
+  button.btn-primary {
+    background: var(--green-dark);
+    border-color: var(--green-dark);
+    color: var(--white);
+  }
+  button.btn-primary:hover { background: var(--green-mid); border-color: var(--green-mid); }
+
+  button.btn-ghost {
+    border-color: transparent;
+    color: var(--text-muted);
+    background: transparent;
+  }
+  button.btn-ghost:hover { background: var(--cream); border-color: #C8C2B0; color: var(--text); }
+
+  .conj-reveal {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .conj-tag {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+
+  /* Results */
+  .results-header {
+    text-align: center;
+    padding: 2rem 1.75rem 1.5rem;
+  }
+
+  .score-big {
+    font-family: 'Lora', serif;
+    font-size: 3rem;
+    font-weight: 500;
+    color: var(--green-dark);
+  }
+
+  .score-msg {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .score-sub {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  .review-list { margin-top: 0; }
+
+  .review-item {
+    padding: 1rem 1.75rem;
+    border-top: 1px solid #EAE4D4;
+  }
+
+  .review-item:first-child { border-top: none; }
+
+  .review-conj {
+    margin-bottom: 6px;
+  }
+
+  .review-sentences {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-style: italic;
+  }
+
+  .review-attempts {
+    margin-bottom: 6px;
+  }
+
+  .review-attempt {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding-left: 12px;
+    border-left: 2px solid #D8D2C0;
+    margin-bottom: 3px;
+  }
+
+  .review-final {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+
+  .review-model {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .review-model strong { color: var(--text); font-weight: 500; }
+
+  /* Screen: done view */
+  #screen-done { display: none; }
+  #screen-activity { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Temporale Nebensätze</h1>
+  <p>Verbinde die zwei Sätze mit der richtigen Konjunktion.</p>
+  <div class="conj-pills">
+    <span class="pill pill-bevor">bevor</span>
+    <span class="pill pill-nachdem">nachdem</span>
+    <span class="pill pill-waehrend">während</span>
+    <span class="pill pill-seitdem">seit(dem)</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Activity screen -->
+  <div id="screen-activity">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-label" id="progress-label"></div>
+    </div>
+    <div id="item-mount"></div>
+  </div>
+
+  <!-- Results screen -->
+  <div id="screen-done">
+    <div class="card">
+      <div class="results-header">
+        <div class="score-big" id="res-score"></div>
+        <div class="score-msg" id="res-msg"></div>
+        <div class="score-sub" id="res-sub"></div>
+      </div>
+      <div class="review-list" id="res-review"></div>
+    </div>
+    <div class="btn-row" style="justify-content:center;margin-top:1rem;">
+      <button class="btn-primary" onclick="restart()">Von vorne anfangen</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ITEMS = [
+  {
+    s1: "Ich esse Frühstück.",
+    s2: "Ich gehe zur Schule.",
+    hint: "Aktivität 1 passiert zuerst — Zeitstufe höher",
+    conj: "nachdem",
+    conjKey: "nachdem",
+    model: "Nachdem ich Frühstück gegessen habe, gehe ich zur Schule."
+  },
+  {
+    s1: "Wir kommen nach Hause.",
+    s2: "Wir machen die Hausaufgaben.",
+    hint: "Aktivität 2 im Nebensatz, aber Aktivität 1 passiert zuerst",
+    conj: "bevor",
+    conjKey: "bevor",
+    model: "Bevor wir die Hausaufgaben machen, kommen wir nach Hause."
+  },
+  {
+    s1: "Ich höre Musik.",
+    s2: "Ich lerne Vokabeln.",
+    hint: "Beide Aktivitäten passieren gleichzeitig",
+    conj: "während",
+    conjKey: "waehrend",
+    model: "Während ich Musik höre, lerne ich Vokabeln."
+  },
+  {
+    s1: "Ich habe angefangen, jeden Tag Sport zu machen. (in der Vergangenheit)",
+    s2: "Ich fühle mich viel besser. (bis heute)",
+    hint: "Beginn in der Vergangenheit, dauert heute noch an",
+    conj: "seitdem",
+    conjKey: "seitdem",
+    model: "Seitdem ich jeden Tag Sport mache, fühle ich mich viel besser."
+  },
+  {
+    s1: "Bastian nimmt das Buch.",
+    s2: "Herr Koreander geht ans Telefon.",
+    hint: "Aktivität 2 im Nebensatz, aber Aktivität 1 passiert zuerst",
+    conj: "bevor",
+    conjKey: "bevor",
+    model: "Bastian nimmt das Buch, bevor Herr Koreander ans Telefon geht."
+  },
+  {
+    s1: "Atréju hat Artax verloren. (in der Vergangenheit)",
+    s2: "Er ist traurig. (bis heute)",
+    hint: "Beginn in der Vergangenheit, dauert heute noch an",
+    conj: "seitdem",
+    conjKey: "seitdem",
+    model: "Seitdem Atréju Artax verloren hat, ist er traurig."
+  },
+  {
+    s1: "Die Schüler lesen das Kapitel.",
+    s2: "Die Schüler beantworten die Fragen.",
+    hint: "Aktivität 1 passiert zuerst — Zeitstufe höher",
+    conj: "nachdem",
+    conjKey: "nachdem",
+    model: "Nachdem die Schüler das Kapitel gelesen haben, beantworten sie die Fragen."
+  },
+  {
+    s1: "Es regnet.",
+    s2: "Maria wartet auf den Bus.",
+    hint: "Beide Aktivitäten passieren gleichzeitig",
+    conj: "während",
+    conjKey: "waehrend",
+    model: "Während es regnet, wartet Maria auf den Bus."
+  }
+];
+
+const CONJ_STYLE = {
+  bevor:    { bg: "var(--bevor-bg)",    text: "var(--bevor-text)",    border: "var(--bevor-border)" },
+  nachdem:  { bg: "var(--nachdem-bg)",  text: "var(--nachdem-text)",  border: "var(--nachdem-border)" },
+  waehrend: { bg: "var(--waehrend-bg)", text: "var(--waehrend-text)", border: "var(--waehrend-border)" },
+  seitdem:  { bg: "var(--seitdem-bg)",  text: "var(--seitdem-text)",  border: "var(--seitdem-border)" }
+};
+
+// Partizip II patterns: ge___t, ge___en, common irregulars
+const PARTIZIP_PATTERN = /ge\w+(t|en)\b/i;
+// Haben/sein perfect auxiliaries at clause end
+const HABEN_SEIN_END = /\b(habe|hast|hat|haben|habt|hatte|hattest|hatten|hattet|bin|bist|ist|sind|seid|war|warst|waren|wart)\s*[,.]?\s*$/i;
+
+function normalize(s) {
+  return s.toLowerCase()
+    .replace(/ä/g,'ae').replace(/ö/,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+    .trim();
+}
+
+function checkAnswer(item, raw) {
+  const ans = raw.trim();
+  const ansLower = ans.toLowerCase();
+  const errors = [];
+  let correct = true;
+
+  // 1. Correct conjunction present?
+  const conjVariants = {
+    nachdem:  ["nachdem"],
+    bevor:    ["bevor"],
+    waehrend: ["während", "wahrend", "waehrend"],
+    seitdem:  ["seitdem", "seit dem", "seit"]
+  };
+  const variants = conjVariants[item.conjKey];
+  const hasConj = variants.some(v => ansLower.includes(v));
+
+  if (!hasConj) {
+    correct = false;
+    const tips = {
+      nachdem:  "Denk an die Reihenfolge: Aktivität 1 passiert zuerst — welche Konjunktion drückt das aus?",
+      bevor:    "Denk an die Reihenfolge: Aktivität 2 kommt im Nebensatz, aber passiert später — welche Konjunktion?",
+      waehrend: "Beide Aktivitäten passieren zur gleichen Zeit — welche Konjunktion bedeutet 'at the same time'?",
+      seitdem:  "Etwas hat in der Vergangenheit begonnen und dauert noch an — welche Konjunktion passt?"
+    };
+    errors.push({ msg: `Falsche oder fehlende Konjunktion. ${tips[item.conjKey]}` });
+  }
+
+  // 2. Comma between clauses?
+  if (!ans.includes(",")) {
+    correct = false;
+    errors.push({ msg: "Kein Komma zwischen Haupt- und Nebensatz. Im Deutschen braucht man immer ein Komma vor der Konjunktion." });
+  }
+
+  // 3. For nachdem: check for Partizip II + Hilfsverb
+  if (item.conjKey === "nachdem" && hasConj) {
+    const nachdemMatch = ansLower.match(/nachdem\s+(.+?),/i);
+    if (nachdemMatch) {
+      const nebensatz = nachdemMatch[1];
+      const hasPartizip = PARTIZIP_PATTERN.test(nebensatz);
+      const hasHilfsverb = HABEN_SEIN_END.test(nebensatz) || /\b(habe|hast|hat|haben|habt|hatte|hattest|hatten|hattet|bin|bist|ist|sind|seid|war|warst|waren|wart)\b/i.test(nebensatz);
+      if (!hasPartizip && !hasHilfsverb) {
+        correct = false;
+        errors.push({
+          msg: "Zeitform im nachdem-Satz ist falsch. Nach 'nachdem' muss das Verb im Perfekt stehen: Hilfsverb (haben/sein) + Partizip II am Ende.",
+          tip: "Beispiel: 'Nachdem ich gegessen <strong>habe</strong>' — das Hilfsverb steht am Ende des Nebensatzes."
+        });
+      } else if (!hasPartizip) {
+        correct = false;
+        errors.push({
+          msg: "Das Partizip II fehlt im nachdem-Satz.",
+          tip: "Perfekt = Hilfsverb + Partizip II. Beispiel: gegessen, gelesen, gemacht, gegangen…"
+        });
+      } else if (!hasHilfsverb) {
+        correct = false;
+        errors.push({
+          msg: "Das Hilfsverb (haben/sein) fehlt oder steht nicht am Ende des Nebensatzes.",
+          tip: "Im Nebensatz steht das Hilfsverb ganz am Ende: '…gegessen <strong>habe</strong>,'"
+        });
+      }
+    }
+  }
+
+  // 4. Verb-final in Nebensatz: find the subordinate clause and check
+  if (hasConj && ans.includes(",")) {
+    // Determine which part is the Nebensatz
+    const parts = ans.split(",");
+    let nebensatzPart = null;
+    for (const part of parts) {
+      const p = part.trim().toLowerCase();
+      if (variants.some(v => p.startsWith(v))) {
+        nebensatzPart = part.trim();
+        break;
+      }
+    }
+    if (nebensatzPart) {
+      // Strip trailing punctuation
+      const cleaned = nebensatzPart.replace(/[.!?]$/, "").trim();
+      const words = cleaned.split(/\s+/);
+      const lastWord = normalize(words[words.length - 1]);
+      // Common finite verb endings in German
+      const verbEndings = /^(e|st|t|en|et|est|te|test|ten|tet|ge\w+(t|en))$/;
+      // Also check explicitly for known problem: infinitive immediately after subject
+      // We flag if the last word looks like a non-verb (article, pronoun, noun-like)
+      const nonVerbLast = /^(ich|du|er|sie|es|wir|ihr|den|dem|der|die|das|ein|eine|einen|einem|mein|dein|sein|kein|sehr|auch|noch|immer|nicht|ja|nein|und|aber|oder)$/;
+      if (nonVerbLast.test(lastWord)) {
+        correct = false;
+        errors.push({
+          msg: "Das Verb steht nicht am Ende des Nebensatzes.",
+          tip: "Goldene Regel: Im Nebensatz steht das Verb <strong>immer am Ende</strong>. Beispiel: 'Bevor ich <strong>frühstücke</strong>,…'"
+        });
+      }
+    }
+  }
+
+  // 5. If Nebensatz comes first, Hauptsatz verb must be in position 2
+  if (hasConj && ans.includes(",") && correct) {
+    const commaIdx = ans.indexOf(",");
+    const firstClause = ans.substring(0, commaIdx).trim().toLowerCase();
+    const secondClause = ans.substring(commaIdx + 1).trim();
+    if (variants.some(v => firstClause.startsWith(v))) {
+      // Second clause: first word should be a verb (inverted word order)
+      const secondWords = secondClause.trim().split(/\s+/);
+      const firstWordSecond = normalize(secondWords[0]);
+      const pronouns = ["ich","du","er","sie","es","wir","ihr","man","bastian","atreju","maria"];
+      if (pronouns.includes(firstWordSecond)) {
+        // Subject first is only fine if there's no inversion needed — but actually
+        // after a Nebensatz the verb must come directly after the comma
+        correct = false;
+        errors.push({
+          msg: "Wortstellung im Hauptsatz ist falsch. Wenn der Nebensatz zuerst kommt, muss das Verb des Hauptsatzes direkt nach dem Komma stehen.",
+          tip: "Beispiel: 'Bevor ich esse, <strong>trinke</strong> ich Wasser.' — nicht: 'Bevor ich esse, ich trinke Wasser.'"
+        });
+      }
+    }
+  }
+
+  return { correct, errors };
+}
+
+// ── State ──────────────────────────────────────────────────
+let current = 0;
+const state = ITEMS.map(() => ({
+  attempts: [],       // [{text, correct}]
+  currentInput: "",
+  result: null,       // {correct, errors}
+  gaveUp: false
+}));
+let finished = false;
+
+// ── Render helpers ─────────────────────────────────────────
+function conjTagHTML(conjKey, label) {
+  const s = CONJ_STYLE[conjKey];
+  return `<span class="conj-tag" style="background:${s.bg};color:${s.text};border:1px solid ${s.border};">${label}</span>`;
+}
+
+function pipsHTML(i) {
+  const MAX = 2;
+  let html = '<div class="attempt-pips">';
+  for (let p = 0; p < MAX; p++) {
+    const a = state[i].attempts[p];
+    if (!a) html += `<span class="pip pip-empty"></span>`;
+    else html += `<span class="pip ${a.correct ? 'pip-correct' : 'pip-incorrect'}"></span>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function feedbackHTML(i) {
+  const s = state[i];
+  const r = s.result;
+  if (!r) return '';
+  const item = ITEMS[i];
+  const attemptNum = s.attempts.length;
+  const canRetry = !r.correct && attemptNum < 2 && !s.gaveUp;
+  const showModel = s.gaveUp || (!r.correct && attemptNum >= 2);
+
+  if (r.correct) {
+    const msg = attemptNum === 1 ? "Richtig! Ausgezeichnet." : "Richtig beim zweiten Versuch! Gut gemacht.";
+    return `<div class="feedback fb-correct"><div class="fb-summary">${msg}</div></div>`;
+  }
+
+  const errorsHTML = r.errors.map(e => {
+    const tipHTML = e.tip ? `<div class="fb-tip">Tipp: ${e.tip}</div>` : '';
+    return `<p class="fb-error-item">${e.msg}</p>${tipHTML}`;
+  }).join('');
+
+  const modelHTML = showModel
+    ? `<div class="fb-model">Musterantwort: <strong>${item.model}</strong></div>` : '';
+
+  return `<div class="feedback fb-incorrect">
+    <div class="fb-summary">Noch nicht ganz richtig — schau dir die Fehler unten an.</div>
+    <div class="fb-errors">
+      <div class="fb-error-label">Fehler</div>
+      ${errorsHTML}
+    </div>
+    ${modelHTML}
+  </div>`;
+}
+
+function renderItem(i) {
+  const item = ITEMS[i];
+  const s = state[i];
+  const r = s.result;
+  const isChecked = !!r;
+  const isCorrect = isChecked && r.correct;
+  const isWrong = isChecked && !r.correct;
+  const attemptNum = s.attempts.length;
+  const canRetry = isWrong && attemptNum < 2 && !s.gaveUp;
+  const isLocked = isCorrect || s.gaveUp || (isWrong && attemptNum >= 2);
+
+  const taClass = isLocked ? (isCorrect ? 't-correct' : 't-incorrect') : '';
+  const taVal = isLocked ? (s.attempts[s.attempts.length-1]?.text || '') : s.currentInput;
+
+  // Progress
+  document.getElementById('progress-fill').style.width = `${Math.round((i / ITEMS.length) * 100)}%`;
+  document.getElementById('progress-label').textContent = `${i + 1} / ${ITEMS.length}`;
+
+  return `
+    <div class="card">
+      ${pipsHTML(i)}
+      <div class="sentences">
+        <p class="sentence">1. ${item.s1}</p>
+        <p class="sentence">2. ${item.s2}</p>
+      </div>
+      <div class="hint">${item.hint}</div>
+      <textarea id="ans" class="${taClass}" placeholder="Schreib deinen kombinierten Satz hier…" ${isLocked ? 'readonly' : ''}>${escHTML(taVal)}</textarea>
+      ${feedbackHTML(i)}
+      <div class="btn-row">
+        ${i > 0 ? `<button onclick="go(${i-1})">← Zurück</button>` : ''}
+        ${!isChecked ? `<button class="btn-primary" onclick="doCheck(${i})">Überprüfen</button>` : ''}
+        ${canRetry ? `<button class="btn-primary" onclick="doRetry(${i})">Nochmal versuchen</button>` : ''}
+        ${canRetry ? `<button class="btn-ghost" onclick="giveUp(${i})">Aufgeben</button>` : ''}
+        ${isLocked && i < ITEMS.length - 1 ? `<button class="btn-primary" onclick="go(${i+1})">Weiter →</button>` : ''}
+        ${isLocked && i === ITEMS.length - 1 ? `<button class="btn-primary" onclick="showResults()">Ergebnisse →</button>` : ''}
+        ${isLocked ? `<div class="conj-reveal">Konjunktion: ${conjTagHTML(item.conjKey, item.conj)}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderResults() {
+  const correct = state.filter(s => s.attempts.some(a => a.correct)).length;
+  const firstTry = state.filter(s => s.attempts.length === 1 && s.attempts[0].correct).length;
+  const pct = Math.round((correct / ITEMS.length) * 100);
+  const msgs = [
+    [100, "Ausgezeichnet! Perfekte Leistung! 🎉"],
+    [75,  "Sehr gut! Fast perfekt!"],
+    [50,  "Gut gemacht! Noch ein bisschen üben!"],
+    [0,   "Weitermachen! Du schaffst das!"]
+  ];
+  const msg = msgs.find(([t]) => pct >= t)[1];
+
+  document.getElementById('res-score').textContent = `${correct} / ${ITEMS.length}`;
+  document.getElementById('res-msg').textContent = msg;
+  document.getElementById('res-sub').textContent = `${firstTry} beim ersten Versuch richtig`;
+
+  document.getElementById('res-review').innerHTML = ITEMS.map((item, i) => {
+    const s = state[i];
+    const ok = s.attempts.some(a => a.correct);
+    const lastAttempt = s.attempts[s.attempts.length - 1]?.text || '—';
+    const attemptsHTML = s.attempts.length > 1
+      ? `<div class="review-attempts">${s.attempts.map((a,n) =>
+          `<div class="review-attempt">Versuch ${n+1}: ${escHTML(a.text)}</div>`
+        ).join('')}</div>`
+      : '';
+    return `<div class="review-item">
+      <div class="review-conj">${conjTagHTML(item.conjKey, item.conj)}</div>
+      <div class="review-sentences">${item.s1} + ${item.s2}</div>
+      ${attemptsHTML}
+      <div class="review-final" style="color:${ok?'#27500A':'#791F1F'};">
+        ${ok ? '✓' : '✗'} ${escHTML(lastAttempt)}
+      </div>
+      <div class="review-model">Musterantwort: <strong>${item.model}</strong></div>
+    </div>`;
+  }).join('');
+}
+
+// ── Actions ────────────────────────────────────────────────
+function go(i) {
+  current = i;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function doCheck(i) {
+  const ta = document.getElementById('ans');
+  if (ta) state[i].currentInput = ta.value;
+  const raw = state[i].currentInput;
+  if (!raw.trim()) return;
+  const result = checkAnswer(ITEMS[i], raw);
+  state[i].result = result;
+  state[i].attempts.push({ text: raw.trim(), correct: result.correct });
+  render();
+}
+
+function doRetry(i) {
+  const ta = document.getElementById('ans');
+  const newVal = ta ? ta.value : state[i].currentInput;
+  if (!newVal.trim()) return;
+  state[i].currentInput = newVal;
+  const result = checkAnswer(ITEMS[i], newVal);
+  state[i].result = result;
+  state[i].attempts.push({ text: newVal.trim(), correct: result.correct });
+  render();
+}
+
+function giveUp(i) {
+  state[i].gaveUp = true;
+  render();
+}
+
+function showResults() {
+  finished = true;
+  document.getElementById('screen-activity').style.display = 'none';
+  document.getElementById('screen-done').style.display = 'block';
+  renderResults();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function restart() {
+  current = 0;
+  finished = false;
+  ITEMS.forEach((_, i) => {
+    state[i] = { attempts: [], currentInput: "", result: null, gaveUp: false };
+  });
+  document.getElementById('screen-done').style.display = 'none';
+  document.getElementById('screen-activity').style.display = 'block';
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function escHTML(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function render() {
+  document.getElementById('item-mount').innerHTML = renderItem(current);
+  const ta = document.getElementById('ans');
+  if (ta && !state[current].result) {
+    ta.addEventListener('input', e => { state[current].currentInput = e.target.value; });
+    ta.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const s = state[current];
+        if (!s.result) doCheck(current);
+        else if (s.result && !s.result.correct && s.attempts.length < 2 && !s.gaveUp) doRetry(current);
+      }
+    });
+  }
+}
+
+render();
+</script>
+</body>
+</html>
